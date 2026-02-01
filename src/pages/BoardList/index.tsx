@@ -1,14 +1,18 @@
-import { Link } from 'react-router-dom';
-import { RiDashboardLine, RiAddLine, RiDeleteBinLine } from 'react-icons/ri';
-import CreateBoardModal from '../../components/CreateBoardModal';
-import Header from '../../components/Header';
-import './BoardList.css';
+import { Link, Navigate } from "react-router-dom";
+import { RiDashboardLine, RiAddLine, RiDeleteBinLine } from "react-icons/ri";
+import CreateBoardModal from "../../components/CreateBoardModal";
+import Header from "../../components/Header";
+import "./BoardList.css";
+import { useCurrentUserStore } from "../../modules/auth/current-user.status";
 
 export default function BoardList() {
+  const { currentUser } = useCurrentUserStore();
+
   const boards = [
-    { id: '1', name: 'Design Sprint', updatedAt: new Date().toISOString() },
-    { id: '2', name: 'Kanban Board', updatedAt: new Date().toISOString() },
+    { id: "1", name: "Design Sprint", updatedAt: new Date().toISOString() },
+    { id: "2", name: "Kanban Board", updatedAt: new Date().toISOString() },
   ];
+  if (currentUser == null) return <Navigate to="/signin" />;
 
   return (
     <div className="board-list-page">

@@ -1,9 +1,14 @@
-import { RiStickyNoteFill, RiText, RiImageFill } from 'react-icons/ri';
-import Header from '../../components/Header';
-import Canvas from '../../components/Canvas';
-import './Board.css';
+import { RiStickyNoteFill, RiText, RiImageFill } from "react-icons/ri";
+import Header from "../../components/Header";
+import Canvas from "../../components/Canvas";
+import "./Board.css";
+import { useCurrentUserStore } from "../../modules/auth/current-user.status";
+import { Navigate } from "react-router-dom";
 
 export default function Board() {
+  const { currentUser } = useCurrentUserStore();
+  if (currentUser == null) return <Navigate to="/" />;
+
   return (
     <div className="board-page">
       <Header />
@@ -20,7 +25,7 @@ export default function Board() {
             <button className="toolbar__button" title="Image">
               <RiImageFill className="toolbar__icon" />
             </button>
-            <input type="file" style={{ display: 'none' }} accept="image/*" />
+            <input type="file" style={{ display: "none" }} accept="image/*" />
           </div>
         </aside>
 
