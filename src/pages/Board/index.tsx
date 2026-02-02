@@ -3,15 +3,35 @@ import Header from "../../components/Header";
 import Canvas from "../../components/Canvas";
 import "./Board.css";
 import { useCurrentUserStore } from "../../modules/auth/current-user.status";
-import { Navigate } from "react-router-dom";
+import { Navigate, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { boardRepository } from "../../modules/boards/board.repository";
+import { Board as BoardEntity } from "../../modules/boards/board.entity";
 
 export default function Board() {
   const { currentUser } = useCurrentUserStore();
+  const { boardId } = useParams<{ boardId: string }>();
+  const [board, setBoard] = useState<BoardEntity | null>(null);
+  // const [isLoaidng, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    fetchBoard();
+  }, [boardId]);
+  const fetchBoard = async () => {
+    // setIsLoading(true);
+    try {
+      const data = await boardRepository.getBoard(boardId!);
+      setBoard(data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
   if (currentUser == null) return <Navigate to="/" />;
+  if (!board) return <p>読み込み中</p>;
 
   return (
     <div className="board-page">
-      <Header />
+      <Header title={board?.name ?? ""} />
 
       <div className="board-page__content">
         <aside className="toolbar">

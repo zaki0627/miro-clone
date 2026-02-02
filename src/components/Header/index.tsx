@@ -1,15 +1,19 @@
-import { Link } from 'react-router-dom';
-import { RiUser3Line, RiLogoutBoxRLine } from 'react-icons/ri';
-import './Header.css';
+import { Link } from "react-router-dom";
+import { RiUser3Line, RiLogoutBoxRLine } from "react-icons/ri";
+import "./Header.css";
+import { useCurrentUserStore } from "../../modules/auth/current-user.status";
 
-export default function Header() {
-  const title = 'Board Title';
-  const currentUser = { name: 'Demo User' };
+interface HeaderProps {
+  title: string;
+}
+export default function Header(props: HeaderProps) {
+  const { title } = props;
+  const { currentUser } = useCurrentUserStore();
 
   return (
     <header className="common-header">
       <div className="common-header__left">
-        <Link to="" className="common-header__logo">
+        <Link to="/" className="common-header__logo">
           Miro Clone
         </Link>
         <div className="common-header__divider" />
@@ -18,7 +22,7 @@ export default function Header() {
       <div className="common-header__right">
         <span className="common-header__user">
           <RiUser3Line />
-          {currentUser.name}
+          {currentUser!.name}
         </span>
         <button className="common-header__logout" title="ログアウト">
           <RiLogoutBoxRLine />
