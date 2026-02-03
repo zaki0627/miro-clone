@@ -3,6 +3,7 @@ import StickyNote from "../StickyNote";
 import ContextToolbar from "../ContextToolbar";
 import "./Canvas.css";
 import type { BoardObject } from "../../modules/board-objects/board-object.entity";
+import TextObject from "../TextObject";
 interface CanvasProps {
   objects: BoardObject[];
   onObjectUpdate: (id: string, data: Partial<BoardObject>) => void;
@@ -35,20 +36,36 @@ export default function Canvas(props: CanvasProps) {
   };
 
   const selectedObject = objects.find((object) => object.id === selectedId);
+  const getObject = (object: BoardObject) => {
+    if (object.type === "sticky") {
+      return (
+        <StickyNote
+          key={object.id}
+          object={object}
+          onUpdate={(data) => onObjectUpdate(object.id, data)}
+          onSelect={() => onObjectSelect(object.id)}
+          isSelected={object.id === selectedId}
+        />
+      );
+    }
+    if (object.type === "text") {
+      return (
+        <TextObject
+          key={object.id}
+          object={object}
+          onUpdate={(data) => onObjectUpdate(object.id, data)}
+          onSelect={() => onObjectSelect(object.id)}
+          isSelected={object.id === selectedId}
+        />
+      );
+    }
+  };
 
   return (
     <div className="canvas-container" onPointerDown={onBackGroundClick}>
       <div className="canvas-grid" style={gridStyle} />
       <div className="canvas-content" style={contentStyle}>
-        {objects.map((object) => (
-          <StickyNote
-            key={object.id}
-            object={object}
-            onUpdate={(data) => onObjectUpdate(object.id, data)}
-            onSelect={() => onObjectSelect(object.id)}
-            isSelected={object.id === selectedId}
-          />
-        ))}
+        {objects.map((object) => getObject(object))}
         {selectedObject && (
           <ContextToolbar
             object={selectedObject}
@@ -56,6 +73,7 @@ export default function Canvas(props: CanvasProps) {
               onObjectUpdate(selectedObject.id, { color })
             }
             onDelete={() => onObjectDelete(selectedObject.id)}
+            showColorPicker={selectedObject.type === "sticky"}
           />
         )}
       </div>

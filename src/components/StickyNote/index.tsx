@@ -44,10 +44,10 @@ export default function StickyNote(props: StichyNoteProps) {
     }
   }, [isEditing]);
   const handleBlur = () => {
-    setIsEditing(false);
     if (editText !== content) {
       onUpdate({ content: editText });
     }
+    setIsEditing(false);
   };
 
   return (

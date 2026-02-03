@@ -7,7 +7,10 @@ import { Navigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { boardRepository } from "../../modules/boards/board.repository";
 import { Board as BoardEntity } from "../../modules/boards/board.entity";
-import { boardObjectRepository } from "../../modules/board-objects/board-object.repository";
+import {
+  boardObjectRepository,
+  type CreateParams,
+} from "../../modules/board-objects/board-object.repository";
 import type { BoardObject } from "../../modules/board-objects/board-object.entity";
 
 export default function Board() {
@@ -30,7 +33,7 @@ export default function Board() {
     }
   };
 
-  const createObject = async () => {
+  const createObject = async (params: Omit<CreateParams, "x" | "y">) => {
     const x = 200 + (Math.random() - 0.5) * 50;
     const y = 200 + (Math.random() - 0.5) * 50;
 
@@ -38,14 +41,27 @@ export default function Board() {
       const newObject = await boardObjectRepository.create(boardId!, {
         x,
         y,
-        type: "sticky",
-        content: "new sticky note",
+        ...params,
       });
       setObjects([...objects, newObject]);
       console.log(newObject);
     } catch (error) {
       console.log(error);
     }
+  };
+
+  const createSticky = async () => {
+    await createObject({
+      type: "sticky",
+      content: "New Sticky Note",
+      color: "#FEF3C7",
+    });
+  };
+  const createText = async () => {
+    await createObject({
+      type: "text",
+      content: "Double click to edit",
+    });
   };
 
   const updateObject = async (id: string, data: Partial<BoardObject>) => {
@@ -86,11 +102,15 @@ export default function Board() {
             <button
               className="toolbar__button"
               title="Sticky Note"
-              onClick={createObject}
+              onClick={createSticky}
             >
               <RiStickyNoteFill className="toolbar__icon" />
             </button>
-            <button className="toolbar__button" title="Text">
+            <button
+              className="toolbar__button"
+              title="Text"
+              onClick={createText}
+            >
               <RiText className="toolbar__icon" />
             </button>
             <button className="toolbar__button" title="Image">
