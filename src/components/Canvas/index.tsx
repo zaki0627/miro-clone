@@ -4,6 +4,7 @@ import ContextToolbar from "../ContextToolbar";
 import "./Canvas.css";
 import type { BoardObject } from "../../modules/board-objects/board-object.entity";
 import TextObject from "../TextObject";
+import ImageObject from "../ImageObject";
 interface CanvasProps {
   objects: BoardObject[];
   onObjectUpdate: (id: string, data: Partial<BoardObject>) => void;
@@ -59,6 +60,18 @@ export default function Canvas(props: CanvasProps) {
         />
       );
     }
+    if (object.type === "image") {
+      return (
+        <ImageObject
+          key={object.id}
+          object={object}
+          onUpdate={(data) => onObjectUpdate(object.id, data)}
+          onSelect={() => onObjectSelect(object.id)}
+          isSelected={object.id === selectedId}
+        />
+      );
+    }
+    return null;
   };
 
   return (
