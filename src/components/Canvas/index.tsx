@@ -1,14 +1,28 @@
-import { RiZoomInLine, RiZoomOutLine } from 'react-icons/ri';
-import StickyNote from '../StickyNote';
-import TextObject from '../TextObject';
-import ImageObject from '../ImageObject';
-import ContextToolbar from '../ContextToolbar';
-import './Canvas.css';
+import { RiZoomInLine, RiZoomOutLine } from "react-icons/ri";
+import StickyNote from "../StickyNote";
+import ContextToolbar from "../ContextToolbar";
+import "./Canvas.css";
+import type { BoardObject } from "../../modules/board-objects/board-object.entity";
+interface CanvasProps {
+  objects: BoardObject[];
+  onObjectUpdate: (id: string, data: Partial<BoardObject>) => void;
+  selectedId: string | null;
+  onObjectSelect: (id: string) => void;
+  onBackGroundClick: () => void;
+  onObjectDelete: (id: string) => void;
+}
 
-export default function Canvas() {
+export default function Canvas(props: CanvasProps) {
+  const {
+    objects,
+    onObjectUpdate,
+    selectedId,
+    onObjectSelect,
+    onBackGroundClick,
+    onObjectDelete,
+  } = props;
   const scale = 1.0;
   const offset = { x: 0, y: 0 };
-  const showToolbar = false;
 
   const gridSize = 20 * scale;
   const gridStyle = {
@@ -20,14 +34,30 @@ export default function Canvas() {
     transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`,
   };
 
+  const selectedObject = objects.find((object) => object.id === selectedId);
+
   return (
-    <div className="canvas-container">
+    <div className="canvas-container" onPointerDown={onBackGroundClick}>
       <div className="canvas-grid" style={gridStyle} />
       <div className="canvas-content" style={contentStyle}>
-        <StickyNote />
-        <TextObject />
-        <ImageObject />
-        {showToolbar && <ContextToolbar />}
+        {objects.map((object) => (
+          <StickyNote
+            key={object.id}
+            object={object}
+            onUpdate={(data) => onObjectUpdate(object.id, data)}
+            onSelect={() => onObjectSelect(object.id)}
+            isSelected={object.id === selectedId}
+          />
+        ))}
+        {selectedObject && (
+          <ContextToolbar
+            object={selectedObject}
+            onColorChange={(color) =>
+              onObjectUpdate(selectedObject.id, { color })
+            }
+            onDelete={() => onObjectDelete(selectedObject.id)}
+          />
+        )}
       </div>
 
       <div className="zoom-control">

@@ -7,21 +7,68 @@ import { Navigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { boardRepository } from "../../modules/boards/board.repository";
 import { Board as BoardEntity } from "../../modules/boards/board.entity";
+import { boardObjectRepository } from "../../modules/board-objects/board-object.repository";
+import type { BoardObject } from "../../modules/board-objects/board-object.entity";
 
 export default function Board() {
   const { currentUser } = useCurrentUserStore();
   const { boardId } = useParams<{ boardId: string }>();
   const [board, setBoard] = useState<BoardEntity | null>(null);
-  // const [isLoaidng, setIsLoading] = useState(false);
+  const [objects, setObjects] = useState<BoardObject[]>([]);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchBoard();
-  }, [boardId]);
+    fetchObjects();
+  }, []);
   const fetchBoard = async () => {
-    // setIsLoading(true);
     try {
       const data = await boardRepository.getBoard(boardId!);
       setBoard(data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const createObject = async () => {
+    const x = 200 + (Math.random() - 0.5) * 50;
+    const y = 200 + (Math.random() - 0.5) * 50;
+
+    try {
+      const newObject = await boardObjectRepository.create(boardId!, {
+        x,
+        y,
+        type: "sticky",
+        content: "new sticky note",
+      });
+      setObjects([...objects, newObject]);
+      console.log(newObject);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const updateObject = async (id: string, data: Partial<BoardObject>) => {
+    try {
+      const updatedObject = await boardObjectRepository.update(id, data);
+      setObjects(objects.map((obj) => (id === obj.id ? updatedObject : obj)));
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  const fetchObjects = async () => {
+    try {
+      const data = await boardObjectRepository.getAll(boardId!);
+      setObjects(data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  const deleteObjects = async (id: string) => {
+    try {
+      await boardObjectRepository.delete(id);
+      setObjects(objects.filter((object) => object.id !== id));
+      setSelectedId(null);
     } catch (error) {
       console.log(error);
     }
@@ -36,7 +83,11 @@ export default function Board() {
       <div className="board-page__content">
         <aside className="toolbar">
           <div className="toolbar__group">
-            <button className="toolbar__button" title="Sticky Note">
+            <button
+              className="toolbar__button"
+              title="Sticky Note"
+              onClick={createObject}
+            >
               <RiStickyNoteFill className="toolbar__icon" />
             </button>
             <button className="toolbar__button" title="Text">
@@ -50,7 +101,14 @@ export default function Board() {
         </aside>
 
         <main className="board-page__canvas-area">
-          <Canvas />
+          <Canvas
+            objects={objects}
+            onObjectUpdate={updateObject}
+            selectedId={selectedId}
+            onObjectSelect={setSelectedId}
+            onBackGroundClick={() => setSelectedId(null)}
+            onObjectDelete={(id: string) => deleteObjects(id)}
+          />
         </main>
       </div>
     </div>

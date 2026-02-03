@@ -1,39 +1,79 @@
-import DraggableObject from '../DraggableObject';
-import './StickyNote.css';
+import { useEffect, useRef, useState } from "react";
+import type { BoardObject } from "../../modules/board-objects/board-object.entity";
+import DraggableObject from "../DraggableObject";
+import "./StickyNote.css";
 
-export default function StickyNote() {
-  const width = 200;
-  const height = 200;
-  const color = 'var(--sticky-yellow)';
-  const content = 'Sample Sticky Note';
-  const isSelected = false;
+interface StichyNoteProps {
+  object: BoardObject;
+  onUpdate: (data: Partial<BoardObject>) => void;
+  onSelect: () => void;
+  isSelected: boolean;
+}
+export default function StickyNote(props: StichyNoteProps) {
+  const { object, onUpdate, onSelect, isSelected } = props;
+  const { x, y, width, height, content, color } = object;
+  const [isEditing, setIsEditing] = useState(false);
+  const [editText, setEditText] = useState("");
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const style: React.CSSProperties = {
-    width,
-    height,
-    backgroundColor: color,
+    width: width || 200,
+    height: height || 200,
+    backgroundColor: color || "var(--sticky-yellow)",
+  };
+
+  const handleDoubleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsEditing(true);
+    onSelect();
   };
 
   const getContainerClassName = () => {
-    let classes = 'sticky-note sticky-note--draggable';
+    let classes = "sticky-note sticky-note--draggable";
     if (isSelected) {
-      classes += ' sticky-note--selected';
+      classes += " sticky-note--selected";
     } else {
-      classes += ' sticky-note--default';
+      classes += " sticky-note--default";
     }
     return classes;
   };
 
-  const positionStyle: React.CSSProperties = {
-    position: 'absolute',
-    top: 100,
-    left: 100,
+  useEffect(() => {
+    if (isEditing && textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  }, [isEditing]);
+  const handleBlur = () => {
+    setIsEditing(false);
+    if (editText !== content) {
+      onUpdate({ content: editText });
+    }
   };
 
   return (
-    <DraggableObject style={positionStyle} className="board-object">
-      <div style={style} className={getContainerClassName()}>
-        <div style={{ pointerEvents: 'none' }}>{content}</div>
+    <DraggableObject
+      x={x}
+      y={y}
+      className="board-object"
+      onDragEnd={(x, y) => onUpdate({ x, y })}
+    >
+      <div
+        style={style}
+        className={getContainerClassName()}
+        onClick={onSelect}
+        onDoubleClick={handleDoubleClick}
+        onBlur={handleBlur}
+      >
+        {isEditing ? (
+          <textarea
+            value={editText}
+            onChange={(e) => setEditText(e.target.value)}
+            className="sticky-note__textarea"
+            ref={textareaRef}
+          />
+        ) : (
+          <div style={{ pointerEvents: "none" }}>{content}</div>
+        )}
       </div>
     </DraggableObject>
   );
