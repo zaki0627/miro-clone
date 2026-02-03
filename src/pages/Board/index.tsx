@@ -20,6 +20,9 @@ export default function Board() {
   const [objects, setObjects] = useState<BoardObject[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const imageRef = useRef<HTMLInputElement>(null);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const canvasRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1.0);
 
   useEffect(() => {
     fetchBoard();
@@ -35,8 +38,9 @@ export default function Board() {
   };
 
   const createObject = async (params: Omit<CreateParams, "x" | "y">) => {
-    const x = 200 + (Math.random() - 0.5) * 50;
-    const y = 200 + (Math.random() - 0.5) * 50;
+    const center = getCenterPosition();
+    const x = center.x + (Math.random() - 0.5) * 50;
+    const y = center.y + (Math.random() - 0.5) * 50;
 
     try {
       const newObject = await boardObjectRepository.create(boardId!, {
@@ -80,6 +84,16 @@ export default function Board() {
     } catch (error) {
       console.log(error);
     }
+  };
+
+  const getCenterPosition = () => {
+    const wrapper = canvasRef.current;
+    if (!wrapper) return { x: 0, y: 0 };
+    const { width, height } = wrapper.getBoundingClientRect();
+    const centerX = width / 2;
+    const centerY = height / 2;
+
+    return { x: (centerX - offset.x) / scale, y: (centerY - offset.y) / scale };
   };
   const deleteObjects = async (id: string) => {
     try {
@@ -153,7 +167,7 @@ export default function Board() {
           </div>
         </aside>
 
-        <main className="board-page__canvas-area">
+        <main className="board-page__canvas-area" ref={canvasRef}>
           <Canvas
             objects={objects}
             onObjectUpdate={updateObject}
@@ -161,6 +175,10 @@ export default function Board() {
             onObjectSelect={setSelectedId}
             onBackGroundClick={() => setSelectedId(null)}
             onObjectDelete={(id: string) => deleteObjects(id)}
+            offset={offset}
+            onOffsetChange={setOffset}
+            scale={scale}
+            onScaleChange={setScale}
           />
         </main>
       </div>

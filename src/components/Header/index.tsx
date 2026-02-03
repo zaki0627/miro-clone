@@ -8,7 +8,13 @@ interface HeaderProps {
 }
 export default function Header(props: HeaderProps) {
   const { title } = props;
-  const { currentUser } = useCurrentUserStore();
+  const { currentUser, setCurrentUser } = useCurrentUserStore();
+  const logout = () => {
+    if (window.confirm("ログアウトしますか？")) {
+      localStorage.removeItem("token");
+      setCurrentUser(undefined);
+    }
+  };
 
   return (
     <header className="common-header">
@@ -24,7 +30,11 @@ export default function Header(props: HeaderProps) {
           <RiUser3Line />
           {currentUser!.name}
         </span>
-        <button className="common-header__logout" title="ログアウト">
+        <button
+          className="common-header__logout"
+          title="ログアウト"
+          onClick={logout}
+        >
           <RiLogoutBoxRLine />
         </button>
       </div>

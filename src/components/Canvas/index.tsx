@@ -5,6 +5,10 @@ import "./Canvas.css";
 import type { BoardObject } from "../../modules/board-objects/board-object.entity";
 import TextObject from "../TextObject";
 import ImageObject from "../ImageObject";
+
+const MIN_SCALE = 0.2;
+const MAX_SCALE = 2.0;
+const SCALE_STEP = 0.1;
 interface CanvasProps {
   objects: BoardObject[];
   onObjectUpdate: (id: string, data: Partial<BoardObject>) => void;
@@ -12,20 +16,41 @@ interface CanvasProps {
   onObjectSelect: (id: string) => void;
   onBackGroundClick: () => void;
   onObjectDelete: (id: string) => void;
+  offset: { x: number; y: number };
+  onOffsetChange: (offset: { x: number; y: number }) => void;
+  scale: number;
+  onScaleChange: (scale: number) => void;
 }
 
-export default function Canvas(props: CanvasProps) {
-  const {
-    objects,
-    onObjectUpdate,
-    selectedId,
-    onObjectSelect,
-    onBackGroundClick,
-    onObjectDelete,
-  } = props;
-  const scale = 1.0;
-  const offset = { x: 0, y: 0 };
+export default function Canvas({
+  objects,
+  onObjectUpdate,
+  selectedId,
+  onObjectSelect,
+  onBackGroundClick,
+  onObjectDelete,
+  offset,
+  onOffsetChange,
+  scale,
+  onScaleChange,
+}: CanvasProps) {
+  const handleWheel = (e: React.WheelEvent) => {
+    const deltaX = e.deltaX;
+    const deltaY = e.deltaY;
+    onOffsetChange({
+      x: offset.x - deltaX,
+      y: offset.y - deltaY,
+    });
+  };
 
+  const zoomIn = () => {
+    if (scale >= MAX_SCALE) return;
+    onScaleChange(Math.round((scale + SCALE_STEP) * 10) / 10);
+  };
+  const zoomOut = () => {
+    if (scale <= MIN_SCALE) return;
+    onScaleChange(Math.round((scale - SCALE_STEP) * 10) / 10);
+  };
   const gridSize = 20 * scale;
   const gridStyle = {
     backgroundSize: `${gridSize}px ${gridSize}px`,
@@ -75,7 +100,11 @@ export default function Canvas(props: CanvasProps) {
   };
 
   return (
-    <div className="canvas-container" onPointerDown={onBackGroundClick}>
+    <div
+      className="canvas-container"
+      onPointerDown={onBackGroundClick}
+      onWheel={handleWheel}
+    >
       <div className="canvas-grid" style={gridStyle} />
       <div className="canvas-content" style={contentStyle}>
         {objects.map((object) => getObject(object))}
@@ -92,13 +121,21 @@ export default function Canvas(props: CanvasProps) {
       </div>
 
       <div className="zoom-control">
-        <button className="zoom-control__button" title="Zoom Out">
+        <button
+          className="zoom-control__button"
+          title="Zoom Out"
+          onClick={zoomOut}
+        >
           <RiZoomOutLine />
         </button>
         <span className="zoom-control__percentage" title="Current Zoom">
           {Math.round(scale * 100)}%
         </span>
-        <button className="zoom-control__button" title="Zoom In">
+        <button
+          className="zoom-control__button"
+          title="Zoom In"
+          onClick={zoomIn}
+        >
           <RiZoomInLine />
         </button>
       </div>
